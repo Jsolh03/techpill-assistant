@@ -7,8 +7,22 @@ from ..database import get_db
 
 router = APIRouter(prefix="/api", tags=["documentos"])
 
-# Limite de tamano del PDF (10 MB) para no aceptar archivos enormes.
-MAX_PDF_BYTES = 10 * 1024 * 1024
+# Limite de tamano del archivo (10 MB) para no aceptar ficheros enormes.
+MAX_FILE_BYTES = 10 * 1024 * 1024
+
+# Extensiones admitidas.
+EXTENSIONES_OK = (".pdf", ".txt")
+
+
+def _read_txt(data: bytes) -> str:
+    """Decodifica un fichero de texto plano (probando UTF-8 y, si falla, Latin-1)."""
+    try:
+        texto = data.decode("utf-8").strip()
+    except UnicodeDecodeError:
+        texto = data.decode("latin-1").strip()  # latin-1 acepta cualquier byte
+    if not texto:
+        raise pdf_service.PdfError("El fichero de texto esta vacio.")
+    return texto
 
 
 @router.post(
@@ -21,20 +35,24 @@ async def upload_document(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ):
-    """Sube un PDF, extrae su texto y lo asocia a la conversacion."""
+    """Sube un PDF o TXT, extrae su texto y lo asocia a la conversacion."""
     conv = db.get(models.Conversation, conversation_id)
     if conv is None:
         raise HTTPException(status_code=404, detail="Conversacion no encontrada")
 
-    if not (file.filename or "").lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Solo se aceptan archivos PDF")
+    nombre = (file.filename or "").lower()
+    if not nombre.endswith(EXTENSIONES_OK):
+        raise HTTPException(status_code=400, detail="Solo se aceptan archivos PDF o TXT")
 
     data = await file.read()
-    if len(data) > MAX_PDF_BYTES:
-        raise HTTPException(status_code=413, detail="El PDF supera el limite de 10 MB")
+    if len(data) > MAX_FILE_BYTES:
+        raise HTTPException(status_code=413, detail="El archivo supera el limite de 10 MB")
 
     try:
-        text = pdf_service.extract_text(data)
+        if nombre.endswith(".pdf"):
+            text = pdf_service.extract_text(data)
+        else:  # .txt
+            text = _read_txt(data)
     except pdf_service.PdfError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 

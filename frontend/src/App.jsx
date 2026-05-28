@@ -196,7 +196,7 @@ function App() {
               <p className="empty-title">¡Hola! 👋</p>
               <p>
                 Soy tu asistente personal con IA local. Preguntame lo que quieras o adjunta
-                un PDF 📎 para que lo analice.
+                un PDF o TXT 📎 para que lo analice.
               </p>
             </div>
           )}
@@ -242,7 +242,7 @@ function App() {
           <input
             ref={fileRef}
             type="file"
-            accept="application/pdf"
+            accept=".pdf,.txt,application/pdf,text/plain"
             style={{ display: 'none' }}
             onChange={handleFilePick}
           />
@@ -251,7 +251,7 @@ function App() {
             className="btn attach"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            title="Adjuntar PDF"
+            title="Adjuntar PDF o TXT"
           >
             {uploading ? '⏳' : '📎'}
           </button>
