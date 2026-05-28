@@ -79,6 +79,29 @@ export async function deleteTask(id) {
   if (!resp.ok) throw new Error('No se pudo borrar la tarea')
 }
 
+// ---------- Memoria global (cross-conversación) ----------
+
+export async function listMemories() {
+  const resp = await fetch('/api/memories')
+  if (!resp.ok) throw new Error('No se pudo cargar la memoria')
+  return resp.json()
+}
+
+export async function createMemory(content) {
+  const resp = await fetch('/api/memories', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content }),
+  })
+  if (!resp.ok) throw new Error('No se pudo guardar el recuerdo')
+  return resp.json()
+}
+
+export async function deleteMemory(id) {
+  const resp = await fetch(`/api/memories/${id}`, { method: 'DELETE' })
+  if (!resp.ok) throw new Error('No se pudo borrar el recuerdo')
+}
+
 // ---------- Documentos / PDFs (Fase 3) ----------
 
 export async function listDocuments(conversationId) {

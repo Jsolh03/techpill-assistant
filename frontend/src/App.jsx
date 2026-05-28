@@ -13,6 +13,7 @@ import {
 } from './api'
 import Sidebar from './Sidebar'
 import TasksPanel from './TasksPanel'
+import MemoryPanel from './MemoryPanel'
 import './App.css'
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [showTasks, setShowTasks] = useState(false) // panel de tareas visible
+  const [showMemory, setShowMemory] = useState(false) // panel de memoria visible
   const [health, setHealth] = useState(null)
   // Modelo de Ollama elegido (se recuerda entre sesiones con localStorage).
   const [model, setModel] = useState(() => localStorage.getItem('techpill_model') || '')
@@ -218,8 +220,21 @@ function App() {
               </select>
             )}
             <button
+              className={`tasks-toggle ${showMemory ? 'active' : ''}`}
+              onClick={() => {
+                setShowMemory((v) => !v)
+                setShowTasks(false)
+              }}
+              title="Memoria global del asistente"
+            >
+              🧠 Memoria
+            </button>
+            <button
               className={`tasks-toggle ${showTasks ? 'active' : ''}`}
-              onClick={() => setShowTasks((v) => !v)}
+              onClick={() => {
+                setShowTasks((v) => !v)
+                setShowMemory(false)
+              }}
               title="Tareas y recordatorios"
             >
               📋 Tareas
@@ -320,6 +335,7 @@ function App() {
       </div>
 
       {showTasks && <TasksPanel onClose={() => setShowTasks(false)} />}
+      {showMemory && <MemoryPanel onClose={() => setShowMemory(false)} />}
     </div>
   )
 }

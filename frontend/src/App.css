@@ -515,6 +515,30 @@ body {
   opacity: 1;
 }
 
+/* ---- Panel de memoria ---- */
+.mem-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.mem-add {
+  background: var(--accent-2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mem-add:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ---- Caja de escritura ---- */
 .composer {
   display: flex;

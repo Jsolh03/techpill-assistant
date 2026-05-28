@@ -17,6 +17,8 @@ frontend en **React (Vite)**.
 - 📎 **Analiza PDFs y TXT**: adjúntalos y pide resúmenes o preguntas tipo test.
 - 📋 **Tareas y recordatorios** con fecha y prioridad; la IA conoce tu agenda
   (*"¿qué tengo esta semana?"*).
+- 🧠 **Memoria global entre conversaciones**: dile *"recuerda que…"* en cualquier chat
+  y lo recordará en **todos** los demás.
 - 🔀 **Selector de modelos** de Ollama desde la interfaz (se recuerda entre sesiones).
 - 🔒 **100% local y privado**: tus datos no salen de tu equipo.
 
@@ -37,8 +39,8 @@ Ollama (:11434)  ──►  modelo local (ej. qwen2.5-coder:7b)
 - **`backend/`** — API FastAPI.
   - `ollama_service.py` — aísla la comunicación con Ollama.
   - `pdf_service.py` — extracción de texto de PDFs (pypdf).
-  - `database.py` / `models.py` — SQLite + SQLAlchemy (conversaciones, mensajes, documentos, tareas).
-  - `routers/` — endpoints separados por tema (`chat`, `conversations`, `documents`, `tasks`).
+  - `database.py` / `models.py` — SQLite + SQLAlchemy (conversaciones, mensajes, documentos, tareas, memoria).
+  - `routers/` — endpoints separados por tema (`chat`, `conversations`, `documents`, `tasks`, `memories`).
 - **`frontend/`** — interfaz de chat en React con barra lateral de historial, streaming
   y adjuntado de PDFs.
 
@@ -48,6 +50,11 @@ Si la conversación tiene **PDFs adjuntos**, su texto se inyecta como contexto p
 la IA responda basándose en ellos. Además, en cada mensaje se inyectan la **fecha de hoy
 y tus tareas pendientes**, de modo que el asistente puede responder a *"¿qué tengo esta
 semana?"* o *"¿qué es lo más urgente?"* basándose en tu agenda real.
+
+También existe una **memoria global**: cuando dices *"recuerda que…"* (o *"no olvides…"*,
+*"ten en cuenta que…"*) en cualquier conversación, el dato se guarda y se inyecta en el
+contexto de **todas** las conversaciones. Así, si en un chat pides recordar tu número
+favorito, en otro chat distinto el asistente lo seguirá sabiendo.
 
 ---
 
@@ -130,6 +137,9 @@ Para usar otro modelo, descárgalo con `ollama pull <modelo>` y cámbialo en `.e
 | `POST`   | `/api/tasks`                                  | Crea una tarea (título, fecha límite, prioridad) |
 | `PATCH`  | `/api/tasks/{id}`                             | Actualiza una tarea (marcar hecha, cambiar fecha…) |
 | `DELETE` | `/api/tasks/{id}`                             | Borra una tarea                               |
+| `GET`    | `/api/memories`                               | Lista la memoria global                       |
+| `POST`   | `/api/memories`                               | Añade un recuerdo                             |
+| `DELETE` | `/api/memories/{id}`                          | Borra un recuerdo                             |
 | `POST`   | `/api/chat` · `/api/chat/stream`              | Chat sin estado (heredado de la Fase 1)       |
 
 Ejemplo: enviar un mensaje a una conversación existente:
@@ -150,6 +160,7 @@ La base de datos se crea sola en `backend/techpill.db` al arrancar.
 - [x] **Fase 3** — Subir y analizar documentos PDF y TXT (contexto en el chat + acciones rápidas: resumen, test).
 - [x] **Fase 4** — Tareas y recordatorios (panel con prioridades y fechas) + IA consciente de tu agenda.
 - [x] **Fase 5** — Selector de modelos en la interfaz (se recuerda entre sesiones) + pulido (envío deshabilitado si Ollama no está disponible, errores controlados).
+- [x] **Extra** — Memoria global entre conversaciones (*"recuerda que…"*) + robustez de SQLite (`busy_timeout`, claves foráneas).
 
 > ℹ️ **Sobre la creación de tareas por voz/texto natural:** el modelo local actual
 > (`qwen2.5-coder:7b`) no rellena de forma fiable el campo nativo de *tool calling* de

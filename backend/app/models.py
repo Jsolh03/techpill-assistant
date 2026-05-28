@@ -64,6 +64,19 @@ class Document(Base):
     conversation: Mapped["Conversation"] = relationship(back_populates="documents")
 
 
+class Memory(Base):
+    """Un dato que el usuario ha pedido recordar (memoria GLOBAL, no por conversacion).
+
+    Se inyecta en el contexto de todas las conversaciones, asi el asistente "recuerda"
+    el dato aunque cambies de conversacion.
+    """
+    __tablename__ = "memories"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    content: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class Task(Base):
     """Una tarea o recordatorio personal del usuario (global, no por conversacion)."""
     __tablename__ = "tasks"

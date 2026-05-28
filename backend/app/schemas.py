@@ -104,6 +104,19 @@ class TaskUpdate(BaseModel):
     done: bool | None = None
 
 
+# ---------- Memoria global (cross-conversacion) ----------
+class MemoryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    content: str
+    created_at: datetime
+
+
+class MemoryCreate(BaseModel):
+    content: str = Field(..., min_length=1, max_length=500)
+
+
 # ---------- Estado del servicio ----------
 class HealthResponse(BaseModel):
     status: str

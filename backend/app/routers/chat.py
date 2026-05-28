@@ -31,6 +31,62 @@ SYSTEM_PROMPT = schemas.Message(
 MAX_DOC_CHARS = 8000
 
 
+# Frases que indican que el usuario quiere que recordemos algo de forma permanente.
+_TRIGGERS_MEMORIA = (
+    "recuerda que",
+    "recuerda ",
+    "recuerdame",
+    "recuérdame",
+    "no olvides",
+    "ten en cuenta que",
+    "apunta que",
+    "memoriza",
+    "quiero que recuerdes",
+)
+
+
+def _maybe_store_memory(db: Session, content: str) -> bool:
+    """Si el mensaje pide recordar algo, lo guarda en la memoria global.
+
+    Deteccion por palabras clave (robusta y predecible). Evita duplicados exactos.
+    """
+    texto = content.strip()
+    bajo = texto.lower()
+    if not any(t in bajo for t in _TRIGGERS_MEMORIA):
+        return False
+
+    # Evitar guardar el mismo recuerdo dos veces.
+    ya_existe = db.scalar(
+        select(models.Memory).where(models.Memory.content == texto)
+    )
+    if ya_existe is not None:
+        return False
+
+    db.add(models.Memory(content=texto))
+    db.commit()
+    return True
+
+
+def _build_memory_context(db: Session) -> schemas.Message | None:
+    """Crea un mensaje de sistema con TODO lo que el usuario ha pedido recordar.
+
+    Se inyecta en todas las conversaciones, asi el asistente recuerda los datos
+    aunque se cambie de conversacion.
+    """
+    memorias = list(db.scalars(select(models.Memory).order_by(models.Memory.id)).all())
+    if not memorias:
+        return None
+
+    lineas = "\n".join(f"- {m.content}" for m in memorias)
+    return schemas.Message(
+        role="system",
+        content=(
+            "MEMORIA PERSONAL DEL USUARIO (cosas que te ha pedido recordar en "
+            "cualquier conversacion). Tenlas siempre presentes al responder:\n" + lineas
+        ),
+    )
+
+
 def _build_tasks_context(db: Session) -> schemas.Message:
     """Crea un mensaje de sistema con la fecha de hoy y las tareas pendientes.
 
@@ -120,10 +176,17 @@ async def conversation_chat_stream(
 
     db.commit()
 
+    # Si el usuario pide recordar algo, lo guardamos en la memoria GLOBAL.
+    _maybe_store_memory(db, payload.content)
+
     # 2) Construimos el historial que enviaremos a Ollama:
-    #    system + (contexto de documentos si los hay) + toda la conversacion.
+    #    system + memoria global + tareas + (documentos) + toda la conversacion.
     db.refresh(conv)
-    history = [SYSTEM_PROMPT, _build_tasks_context(db)]
+    history = [SYSTEM_PROMPT]
+    memory_context = _build_memory_context(db)
+    if memory_context is not None:
+        history.append(memory_context)
+    history.append(_build_tasks_context(db))
     docs_context = _build_documents_context(conv)
     if docs_context is not None:
         history.append(docs_context)

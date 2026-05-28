@@ -7,7 +7,7 @@ en los endpoints para darles una sesion de BD por peticion.
 from collections.abc import Generator
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 # El fichero de la base de datos se guarda junto al backend: backend/techpill.db
@@ -16,6 +16,15 @@ DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 # check_same_thread=False es necesario porque FastAPI puede usar varios hilos.
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+
+
+@event.listens_for(engine, "connect")
+def _set_sqlite_pragmas(dbapi_conn, _record):
+    """Ajustes de SQLite en cada conexion para evitar 'database is locked'."""
+    cur = dbapi_conn.cursor()
+    cur.execute("PRAGMA busy_timeout = 5000")  # espera hasta 5s si esta bloqueada
+    cur.execute("PRAGMA foreign_keys = ON")  # respeta las claves foraneas (cascadas)
+    cur.close()
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
