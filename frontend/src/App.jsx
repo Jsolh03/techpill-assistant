@@ -2,11 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import {
   createConversation,
   deleteConversation,
+  deleteDocument,
   getConversation,
   getHealth,
   listConversations,
+  listDocuments,
   renameConversation,
   streamConversationChat,
+  uploadDocument,
 } from './api'
 import Sidebar from './Sidebar'
 import './App.css'
@@ -15,11 +18,14 @@ function App() {
   const [conversations, setConversations] = useState([]) // lista lateral
   const [activeId, setActiveId] = useState(null) // conversacion abierta
   const [messages, setMessages] = useState([]) // mensajes de la conversacion abierta
+  const [documents, setDocuments] = useState([]) // PDFs de la conversacion abierta
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [health, setHealth] = useState(null)
   const bottomRef = useRef(null)
   const abortRef = useRef(null)
+  const fileRef = useRef(null)
 
   // Al cargar: estado de Ollama + lista de conversaciones.
   useEffect(() => {
@@ -47,21 +53,20 @@ function App() {
     setActiveId(id)
     const detail = await getConversation(id)
     setMessages(detail.messages.map((m) => ({ role: m.role, content: m.content })))
+    setDocuments(detail.documents ?? [])
   }
 
   function handleNew() {
     // No creamos la conversacion en la BD hasta que se envia el primer mensaje.
     setActiveId(null)
     setMessages([])
+    setDocuments([])
     setInput('')
   }
 
   async function handleDelete(id) {
     await deleteConversation(id)
-    if (id === activeId) {
-      setActiveId(null)
-      setMessages([])
-    }
+    if (id === activeId) handleNew()
     refreshConversations()
   }
 
@@ -70,25 +75,45 @@ function App() {
     refreshConversations()
   }
 
-  async function handleSend(e) {
-    e.preventDefault()
-    const text = input.trim()
-    if (!text || loading) return
+  // Crea la conversacion en la BD si todavia no existe; devuelve su id.
+  async function ensureConversation() {
+    if (activeId != null) return activeId
+    const conv = await createConversation()
+    setActiveId(conv.id)
+    return conv.id
+  }
 
-    setLoading(true)
-    setInput('')
+  // ---------- Subida de PDFs ----------
+  async function handleFilePick(e) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // permite volver a subir el mismo archivo
+    if (!file) return
 
-    // Si no hay conversacion activa, creamos una nueva en la BD.
-    let convId = activeId
-    let isNew = false
-    if (convId == null) {
-      const conv = await createConversation()
-      convId = conv.id
-      isNew = true
-      setActiveId(convId)
+    setUploading(true)
+    try {
+      const convId = await ensureConversation()
+      const doc = await uploadDocument(convId, file)
+      setDocuments((prev) => [...prev, doc])
+      await refreshConversations()
+    } catch (err) {
+      alert(`No se pudo subir el PDF: ${err.message}`)
+    } finally {
+      setUploading(false)
     }
+  }
 
-    // Mostramos el mensaje del usuario y un hueco para la respuesta.
+  async function handleRemoveDoc(docId) {
+    await deleteDocument(docId)
+    setDocuments((prev) => prev.filter((d) => d.id !== docId))
+  }
+
+  // ---------- Envio de mensajes ----------
+  async function sendMessage(text) {
+    if (!text.trim() || loading) return
+    setLoading(true)
+
+    const convId = await ensureConversation()
+
     setMessages((prev) => [
       ...prev,
       { role: 'user', content: text },
@@ -124,11 +149,16 @@ function App() {
     } finally {
       setLoading(false)
       abortRef.current = null
-      // Refrescamos la lista: el backend pudo auto-generar el titulo (conversacion nueva)
-      // o actualizar la fecha (reordenar).
-      if (isNew) await refreshConversations()
-      else refreshConversations()
+      refreshConversations()
     }
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    const text = input.trim()
+    if (!text) return
+    setInput('')
+    sendMessage(text)
   }
 
   function handleStop() {
@@ -164,7 +194,10 @@ function App() {
           {messages.length === 0 && (
             <div className="empty">
               <p className="empty-title">¡Hola! 👋</p>
-              <p>Soy tu asistente personal con IA local. Preguntame lo que quieras.</p>
+              <p>
+                Soy tu asistente personal con IA local. Preguntame lo que quieras o adjunta
+                un PDF 📎 para que lo analice.
+              </p>
             </div>
           )}
 
@@ -179,12 +212,55 @@ function App() {
           <div ref={bottomRef} />
         </main>
 
-        <form className="composer" onSubmit={handleSend}>
+        {/* Documentos adjuntos + acciones rapidas */}
+        {documents.length > 0 && (
+          <div className="docs-bar">
+            {documents.map((d) => (
+              <span className="doc-chip" key={d.id} title={`${d.char_count} caracteres`}>
+                📄 {d.filename}
+                <button onClick={() => handleRemoveDoc(d.id)} title="Quitar">
+                  ✕
+                </button>
+              </span>
+            ))}
+            <span className="quick-actions">
+              <button onClick={() => sendMessage('Hazme un resumen claro del documento.')}>
+                📝 Resumen
+              </button>
+              <button
+                onClick={() =>
+                  sendMessage('Genera 5 preguntas tipo test (con 4 opciones y la respuesta correcta) sobre el documento.')
+                }
+              >
+                ❓ Test
+              </button>
+            </span>
+          </div>
+        )}
+
+        <form className="composer" onSubmit={handleSubmit}>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/pdf"
+            style={{ display: 'none' }}
+            onChange={handleFilePick}
+          />
+          <button
+            type="button"
+            className="btn attach"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            title="Adjuntar PDF"
+          >
+            {uploading ? '⏳' : '📎'}
+          </button>
+
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) handleSend(e)
+              if (e.key === 'Enter' && !e.shiftKey) handleSubmit(e)
             }}
             placeholder="Escribe tu mensaje…  (Enter para enviar, Shift+Enter para salto de linea)"
             rows={1}

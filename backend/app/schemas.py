@@ -44,9 +44,20 @@ class ConversationSummary(BaseModel):
     updated_at: datetime
 
 
+class DocumentOut(BaseModel):
+    """Un documento (PDF) adjunto, sin su texto completo (solo metadatos)."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    filename: str
+    char_count: int
+    created_at: datetime
+
+
 class ConversationDetail(ConversationSummary):
-    """Conversacion completa, con todos sus mensajes."""
+    """Conversacion completa, con todos sus mensajes y documentos."""
     messages: list[MessageOut] = []
+    documents: list[DocumentOut] = []
 
 
 class ConversationCreate(BaseModel):

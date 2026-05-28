@@ -4,9 +4,9 @@ Asistente personal con **IA local** (sin enviar tus datos a internet). Funciona
 sobre [Ollama](https://ollama.com), con un backend en **Python + FastAPI** y un
 frontend en **React (Vite)**.
 
-> Proyecto por fases. **Fase 2 (actual): historial de conversaciones persistente (SQLite).**
+> Proyecto por fases. **Fase 3 (actual): subir y analizar PDFs.**
 
-![estado](https://img.shields.io/badge/fase-2%20historial-blue) ![python](https://img.shields.io/badge/python-3.12-3776ab) ![react](https://img.shields.io/badge/react-19-61dafb) ![sqlite](https://img.shields.io/badge/sqlite-SQLAlchemy-003b57)
+![estado](https://img.shields.io/badge/fase-3%20PDFs-blue) ![python](https://img.shields.io/badge/python-3.12-3776ab) ![react](https://img.shields.io/badge/react-19-61dafb) ![sqlite](https://img.shields.io/badge/sqlite-SQLAlchemy-003b57)
 
 ---
 
@@ -24,12 +24,16 @@ Ollama (:11434)  ──►  modelo local (ej. qwen2.5-coder:7b)
 
 - **`backend/`** — API FastAPI.
   - `ollama_service.py` — aísla la comunicación con Ollama.
-  - `database.py` / `models.py` — SQLite + SQLAlchemy (conversaciones y mensajes).
-  - `routers/` — endpoints separados por tema (`chat`, `conversations`).
-- **`frontend/`** — interfaz de chat en React con barra lateral de historial y streaming.
+  - `pdf_service.py` — extracción de texto de PDFs (pypdf).
+  - `database.py` / `models.py` — SQLite + SQLAlchemy (conversaciones, mensajes, documentos).
+  - `routers/` — endpoints separados por tema (`chat`, `conversations`, `documents`).
+- **`frontend/`** — interfaz de chat en React con barra lateral de historial, streaming
+  y adjuntado de PDFs.
 
 El backend es el **dueño del historial**: al enviar un mensaje carga toda la
 conversación desde la BD y se la pasa a la IA, así el asistente "recuerda" el contexto.
+Si la conversación tiene **PDFs adjuntos**, su texto se inyecta como contexto para que
+la IA responda basándose en ellos.
 
 ---
 
@@ -105,6 +109,9 @@ Para usar otro modelo, descárgalo con `ollama pull <modelo>` y cámbialo en `.e
 | `PATCH`  | `/api/conversations/{id}`                     | Renombra una conversación                     |
 | `DELETE` | `/api/conversations/{id}`                     | Borra la conversación (y sus mensajes)        |
 | `POST`   | `/api/conversations/{id}/chat/stream`         | Envía un mensaje; guarda y responde en streaming |
+| `POST`   | `/api/conversations/{id}/documents`           | Sube un PDF (multipart) y extrae su texto     |
+| `GET`    | `/api/conversations/{id}/documents`           | Lista los PDFs adjuntos                        |
+| `DELETE` | `/api/documents/{id}`                         | Quita un PDF adjunto                           |
 | `POST`   | `/api/chat` · `/api/chat/stream`              | Chat sin estado (heredado de la Fase 1)       |
 
 Ejemplo: enviar un mensaje a una conversación existente:
@@ -122,9 +129,13 @@ La base de datos se crea sola en `backend/techpill.db` al arrancar.
 
 - [x] **Fase 1** — Chat con IA local (streaming).
 - [x] **Fase 2** — Guardar conversaciones (SQLite + SQLAlchemy), historial con memoria.
-- [ ] **Fase 3** — Subir y analizar PDFs (resúmenes, preguntas tipo test).
+- [x] **Fase 3** — Subir y analizar PDFs (contexto en el chat + acciones rápidas: resumen, test).
 - [ ] **Fase 4** — Memoria personal, tareas y recordatorios.
 - [ ] **Fase 5** — Selector de modelos / modo offline pulido.
+
+> ℹ️ **Sobre los PDFs:** el texto extraído se inyecta en el contexto (hasta ~8000
+> caracteres). Para documentos muy largos, la mejora futura es trocear + búsqueda
+> semántica (RAG con *embeddings*). Los PDFs escaneados (solo imagen) necesitarían OCR.
 
 ---
 

@@ -26,6 +26,12 @@ class Conversation(Base):
         cascade="all, delete-orphan",
         order_by="Message.id",
     )
+    # Documentos (PDFs) adjuntos a la conversacion.
+    documents: Mapped[list["Document"]] = relationship(
+        back_populates="conversation",
+        cascade="all, delete-orphan",
+        order_by="Document.id",
+    )
 
 
 class Message(Base):
@@ -40,3 +46,19 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     conversation: Mapped["Conversation"] = relationship(back_populates="messages")
+
+
+class Document(Base):
+    """Un PDF subido a una conversacion. Guardamos su texto extraido."""
+    __tablename__ = "documents"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    conversation_id: Mapped[int] = mapped_column(
+        ForeignKey("conversations.id", ondelete="CASCADE"), index=True
+    )
+    filename: Mapped[str] = mapped_column(String(300))
+    char_count: Mapped[int] = mapped_column(default=0)
+    content: Mapped[str] = mapped_column(Text)  # texto extraido del PDF
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+    conversation: Mapped["Conversation"] = relationship(back_populates="documents")

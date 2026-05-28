@@ -239,6 +239,60 @@ body {
   font-style: italic;
 }
 
+/* ---- Barra de documentos adjuntos ---- */
+.docs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px 0;
+}
+
+.doc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel-2);
+  color: var(--text);
+  font-size: 13px;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+.doc-chip button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+.doc-chip button:hover {
+  color: #f87171;
+}
+
+.quick-actions {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.quick-actions button {
+  background: var(--panel);
+  color: var(--accent);
+  border: 1px solid #2f3442;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quick-actions button:hover {
+  background: var(--panel-2);
+}
+
 /* ---- Caja de escritura ---- */
 .composer {
   display: flex;
@@ -294,6 +348,12 @@ body {
 .btn.clear {
   background: var(--panel-2);
   padding: 12px 14px;
+}
+
+.btn.attach {
+  background: var(--panel-2);
+  padding: 12px 14px;
+  font-size: 18px;
 }
 
 .btn:not(:disabled):hover {

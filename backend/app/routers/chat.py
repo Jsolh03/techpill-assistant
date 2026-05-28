@@ -23,6 +23,35 @@ SYSTEM_PROMPT = schemas.Message(
     ),
 )
 
+# Maximo de caracteres de documentos que metemos en el contexto, para no
+# desbordar la ventana del modelo. (Mejora futura: trocear + busqueda/RAG.)
+MAX_DOC_CHARS = 8000
+
+
+def _build_documents_context(conv: models.Conversation) -> schemas.Message | None:
+    """Si la conversacion tiene PDFs, crea un mensaje de sistema con su texto."""
+    if not conv.documents:
+        return None
+
+    bloques: list[str] = []
+    restante = MAX_DOC_CHARS
+    for doc in conv.documents:
+        if restante <= 0:
+            break
+        trozo = doc.content[:restante]
+        recortado = " [...recortado]" if len(doc.content) > len(trozo) else ""
+        bloques.append(f"### Documento: {doc.filename}{recortado}\n{trozo}")
+        restante -= len(trozo)
+
+    return schemas.Message(
+        role="system",
+        content=(
+            "El usuario ha adjuntado uno o mas documentos. Usa SU CONTENIDO como "
+            "fuente principal para responder. Si la respuesta no esta en los "
+            "documentos, dilo claramente.\n\n" + "\n\n".join(bloques)
+        ),
+    )
+
 
 @router.get("/api/health", response_model=schemas.HealthResponse)
 async def health() -> schemas.HealthResponse:
@@ -55,9 +84,14 @@ async def conversation_chat_stream(
 
     db.commit()
 
-    # 2) Construimos el historial que enviaremos a Ollama (system + toda la conversacion).
+    # 2) Construimos el historial que enviaremos a Ollama:
+    #    system + (contexto de documentos si los hay) + toda la conversacion.
     db.refresh(conv)
-    history = [SYSTEM_PROMPT] + [
+    history = [SYSTEM_PROMPT]
+    docs_context = _build_documents_context(conv)
+    if docs_context is not None:
+        history.append(docs_context)
+    history += [
         schemas.Message(role=m.role, content=m.content)
         for m in conv.messages
         if m.role in ("user", "assistant")

@@ -46,6 +46,38 @@ export async function deleteConversation(id) {
   if (!resp.ok) throw new Error('No se pudo borrar la conversacion')
 }
 
+// ---------- Documentos / PDFs (Fase 3) ----------
+
+export async function listDocuments(conversationId) {
+  const resp = await fetch(`/api/conversations/${conversationId}/documents`)
+  if (!resp.ok) throw new Error('No se pudieron cargar los documentos')
+  return resp.json()
+}
+
+export async function uploadDocument(conversationId, file) {
+  const form = new FormData()
+  form.append('file', file)
+  const resp = await fetch(`/api/conversations/${conversationId}/documents`, {
+    method: 'POST',
+    body: form,
+  })
+  if (!resp.ok) {
+    let detalle = `Error ${resp.status}`
+    try {
+      detalle = (await resp.json()).detail || detalle
+    } catch {
+      /* la respuesta no era JSON */
+    }
+    throw new Error(detalle)
+  }
+  return resp.json()
+}
+
+export async function deleteDocument(documentId) {
+  const resp = await fetch(`/api/documents/${documentId}`, { method: 'DELETE' })
+  if (!resp.ok) throw new Error('No se pudo borrar el documento')
+}
+
 /**
  * Envia un mensaje dentro de una conversacion y recibe la respuesta en streaming.
  * El backend guarda automaticamente el mensaje del usuario y el de la IA.
