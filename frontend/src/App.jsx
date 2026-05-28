@@ -14,6 +14,7 @@ import {
 import Sidebar from './Sidebar'
 import TasksPanel from './TasksPanel'
 import MemoryPanel from './MemoryPanel'
+import Markdown from './Markdown'
 import './App.css'
 
 function App() {
@@ -257,7 +258,13 @@ function App() {
             <div key={i} className={`msg ${m.role}`}>
               <div className="avatar">{m.role === 'user' ? '🧑' : '🤖'}</div>
               <div className="bubble">
-                {m.content || <span className="typing">escribiendo…</span>}
+                {!m.content ? (
+                  <span className="typing">escribiendo…</span>
+                ) : m.role === 'assistant' ? (
+                  <Markdown>{m.content}</Markdown>
+                ) : (
+                  m.content
+                )}
               </div>
             </div>
           ))}

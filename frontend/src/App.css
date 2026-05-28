@@ -279,6 +279,116 @@ body {
   font-style: italic;
 }
 
+/* ---- Markdown dentro de las respuestas de la IA ---- */
+.markdown {
+  white-space: normal;
+}
+
+.markdown p {
+  margin: 0 0 10px;
+}
+
+.markdown p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown ul,
+.markdown ol {
+  margin: 0 0 10px;
+  padding-left: 22px;
+}
+
+.markdown li {
+  margin: 3px 0;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  margin: 12px 0 8px;
+  line-height: 1.3;
+}
+
+.markdown a {
+  color: var(--accent);
+}
+
+.markdown blockquote {
+  border-left: 3px solid #2f3442;
+  margin: 8px 0;
+  padding-left: 12px;
+  color: var(--muted);
+}
+
+.inline-code {
+  background: #0c0e14;
+  border: 1px solid #2f3442;
+  border-radius: 5px;
+  padding: 1px 5px;
+  font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+.code-wrap {
+  position: relative;
+  margin: 8px 0;
+}
+
+.code-wrap pre {
+  background: #0c0e14;
+  border: 1px solid #2f3442;
+  border-radius: 10px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.code-wrap pre code {
+  font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+  font-size: 13px;
+  background: none;
+  padding: 0;
+}
+
+.code-copy {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  background: #232735;
+  color: var(--muted);
+  border: 1px solid #2f3442;
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 11px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.code-wrap:hover .code-copy {
+  opacity: 1;
+}
+
+.code-copy:hover {
+  color: var(--text);
+}
+
+.markdown table {
+  border-collapse: collapse;
+  margin: 8px 0;
+  font-size: 0.92em;
+}
+
+.markdown th,
+.markdown td {
+  border: 1px solid #2f3442;
+  padding: 5px 9px;
+}
+
+.markdown th {
+  background: var(--panel-2);
+}
+
 /* ---- Barra de documentos adjuntos ---- */
 .docs-bar {
   display: flex;
