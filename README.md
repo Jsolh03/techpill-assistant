@@ -12,7 +12,8 @@ frontend en **React (Vite)**.
 
 ## ✨ Funciones
 
-- 💬 **Chat con IA local** con respuestas en *streaming* (palabra a palabra).
+- 💬 **Chat con IA local** con respuestas en *streaming* (palabra a palabra) y
+  **formato Markdown**: bloques de código con resaltado y botón de copiar, listas, tablas…
 - 🗂️ **Historial de conversaciones** persistente y con memoria de contexto.
 - 📎 **Analiza PDFs y TXT**: adjúntalos y pide resúmenes o preguntas tipo test.
 - 📋 **Tareas y recordatorios** con fecha y prioridad; la IA conoce tu agenda
