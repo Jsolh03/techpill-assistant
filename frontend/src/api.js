@@ -119,12 +119,13 @@ export async function deleteDocument(documentId) {
  * @param {string} content
  * @param {(chunk: string) => void} onChunk
  * @param {AbortSignal} [signal]
+ * @param {string} [model] modelo de Ollama a usar (si no, el del backend por defecto)
  */
-export async function streamConversationChat(conversationId, content, onChunk, signal) {
+export async function streamConversationChat(conversationId, content, onChunk, signal, model) {
   const resp = await fetch(`/api/conversations/${conversationId}/chat/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, model: model || null }),
     signal,
   })
 

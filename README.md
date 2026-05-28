@@ -4,9 +4,21 @@ Asistente personal con **IA local** (sin enviar tus datos a internet). Funciona
 sobre [Ollama](https://ollama.com), con un backend en **Python + FastAPI** y un
 frontend en **React (Vite)**.
 
-> Proyecto por fases. **Fase 4 (actual): tareas y recordatorios con IA consciente de tu agenda.**
+> Proyecto por fases. **Fase 5 (actual): selector de modelos + pulido.** ✅ Todas las fases completas.
 
-![estado](https://img.shields.io/badge/fase-4%20tareas-blue) ![python](https://img.shields.io/badge/python-3.12-3776ab) ![react](https://img.shields.io/badge/react-19-61dafb) ![sqlite](https://img.shields.io/badge/sqlite-SQLAlchemy-003b57)
+![estado](https://img.shields.io/badge/fases-1--5%20completas-brightgreen) ![python](https://img.shields.io/badge/python-3.12-3776ab) ![react](https://img.shields.io/badge/react-19-61dafb) ![sqlite](https://img.shields.io/badge/sqlite-SQLAlchemy-003b57) ![ollama](https://img.shields.io/badge/IA-Ollama%20local-000000)
+
+---
+
+## ✨ Funciones
+
+- 💬 **Chat con IA local** con respuestas en *streaming* (palabra a palabra).
+- 🗂️ **Historial de conversaciones** persistente y con memoria de contexto.
+- 📎 **Analiza PDFs y TXT**: adjúntalos y pide resúmenes o preguntas tipo test.
+- 📋 **Tareas y recordatorios** con fecha y prioridad; la IA conoce tu agenda
+  (*"¿qué tengo esta semana?"*).
+- 🔀 **Selector de modelos** de Ollama desde la interfaz (se recuerda entre sesiones).
+- 🔒 **100% local y privado**: tus datos no salen de tu equipo.
 
 ---
 
@@ -137,7 +149,7 @@ La base de datos se crea sola en `backend/techpill.db` al arrancar.
 - [x] **Fase 2** — Guardar conversaciones (SQLite + SQLAlchemy), historial con memoria.
 - [x] **Fase 3** — Subir y analizar documentos PDF y TXT (contexto en el chat + acciones rápidas: resumen, test).
 - [x] **Fase 4** — Tareas y recordatorios (panel con prioridades y fechas) + IA consciente de tu agenda.
-- [ ] **Fase 5** — Selector de modelos / modo offline pulido.
+- [x] **Fase 5** — Selector de modelos en la interfaz (se recuerda entre sesiones) + pulido (envío deshabilitado si Ollama no está disponible, errores controlados).
 
 > ℹ️ **Sobre la creación de tareas por voz/texto natural:** el modelo local actual
 > (`qwen2.5-coder:7b`) no rellena de forma fiable el campo nativo de *tool calling* de

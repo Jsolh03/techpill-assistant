@@ -165,6 +165,22 @@ body {
   color: var(--muted);
 }
 
+.model-select {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid #2f3442;
+  border-radius: 9px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  max-width: 200px;
+}
+
+.model-select:hover {
+  border-color: var(--accent);
+}
+
 .tasks-toggle {
   background: var(--panel);
   color: var(--text);

@@ -25,6 +25,8 @@ function App() {
   const [uploading, setUploading] = useState(false)
   const [showTasks, setShowTasks] = useState(false) // panel de tareas visible
   const [health, setHealth] = useState(null)
+  // Modelo de Ollama elegido (se recuerda entre sesiones con localStorage).
+  const [model, setModel] = useState(() => localStorage.getItem('techpill_model') || '')
   const bottomRef = useRef(null)
   const abortRef = useRef(null)
   const fileRef = useRef(null)
@@ -32,10 +34,21 @@ function App() {
   // Al cargar: estado de Ollama + lista de conversaciones.
   useEffect(() => {
     getHealth()
-      .then(setHealth)
+      .then((h) => {
+        setHealth(h)
+        // Si no hay modelo elegido (o el guardado ya no existe), usamos el primero.
+        setModel((prev) =>
+          prev && h.models?.includes(prev) ? prev : h.models?.[0] || '',
+        )
+      })
       .catch(() => setHealth({ ollama_connected: false, models: [] }))
     refreshConversations()
   }, [])
+
+  // Persistimos el modelo elegido.
+  useEffect(() => {
+    if (model) localStorage.setItem('techpill_model', model)
+  }, [model])
 
   // Auto-scroll al ultimo mensaje.
   useEffect(() => {
@@ -139,6 +152,7 @@ function App() {
           })
         },
         abortRef.current.signal,
+        model,
       )
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -187,10 +201,22 @@ function App() {
           <div className="header-right">
             <div className="status">
               <span className={`dot ${health?.ollama_connected ? 'on' : 'off'}`} />
-              {health?.ollama_connected
-                ? `Ollama conectado · ${health.models[0] ?? ''}`
-                : 'Ollama no disponible'}
+              {health?.ollama_connected ? 'Ollama conectado' : 'Ollama no disponible'}
             </div>
+            {health?.ollama_connected && health.models.length > 0 && (
+              <select
+                className="model-select"
+                value={model}
+                onChange={(e) => setModel(e.target.value)}
+                title="Modelo de IA"
+              >
+                {health.models.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+            )}
             <button
               className={`tasks-toggle ${showTasks ? 'active' : ''}`}
               onClick={() => setShowTasks((v) => !v)}
@@ -281,7 +307,12 @@ function App() {
               Detener
             </button>
           ) : (
-            <button type="submit" className="btn send" disabled={!input.trim()}>
+            <button
+              type="submit"
+              className="btn send"
+              disabled={!input.trim() || !health?.ollama_connected}
+              title={health?.ollama_connected ? 'Enviar' : 'Ollama no está disponible'}
+            >
               Enviar
             </button>
           )}
