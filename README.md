@@ -176,4 +176,4 @@ La base de datos se crea sola en `backend/techpill.db` al arrancar.
 
 ## 📄 Licencia
 
-Uso personal y educativo.
+[MIT](LICENSE) © 2026 Jsolh03. Eres libre de usar, modificar y distribuir este código.
