@@ -1,5 +1,5 @@
 """Modelos de datos (Pydantic) que definen la forma de las peticiones y respuestas."""
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -73,6 +73,35 @@ class SendMessageRequest(BaseModel):
     """El usuario envia un mensaje nuevo dentro de una conversacion."""
     content: str = Field(..., min_length=1)
     model: str | None = None
+
+
+# ---------- Tareas / recordatorios (Fase 4) ----------
+Priority = Literal["alta", "media", "baja"]
+
+
+class TaskOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    due_date: date | None
+    priority: Priority
+    done: bool
+    created_at: datetime
+
+
+class TaskCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=300)
+    due_date: date | None = None
+    priority: Priority = "media"
+
+
+class TaskUpdate(BaseModel):
+    """Todos los campos opcionales: se actualiza solo lo que llegue."""
+    title: str | None = Field(default=None, min_length=1, max_length=300)
+    due_date: date | None = None
+    priority: Priority | None = None
+    done: bool | None = None
 
 
 # ---------- Estado del servicio ----------

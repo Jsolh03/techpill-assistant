@@ -12,6 +12,7 @@ import {
   uploadDocument,
 } from './api'
 import Sidebar from './Sidebar'
+import TasksPanel from './TasksPanel'
 import './App.css'
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [showTasks, setShowTasks] = useState(false) // panel de tareas visible
   const [health, setHealth] = useState(null)
   const bottomRef = useRef(null)
   const abortRef = useRef(null)
@@ -182,11 +184,20 @@ function App() {
             <span className="logo">💊</span>
             <h1>TechPill Assistant</h1>
           </div>
-          <div className="status">
-            <span className={`dot ${health?.ollama_connected ? 'on' : 'off'}`} />
-            {health?.ollama_connected
-              ? `Ollama conectado · ${health.models[0] ?? ''}`
-              : 'Ollama no disponible'}
+          <div className="header-right">
+            <div className="status">
+              <span className={`dot ${health?.ollama_connected ? 'on' : 'off'}`} />
+              {health?.ollama_connected
+                ? `Ollama conectado · ${health.models[0] ?? ''}`
+                : 'Ollama no disponible'}
+            </div>
+            <button
+              className={`tasks-toggle ${showTasks ? 'active' : ''}`}
+              onClick={() => setShowTasks((v) => !v)}
+              title="Tareas y recordatorios"
+            >
+              📋 Tareas
+            </button>
           </div>
         </header>
 
@@ -276,6 +287,8 @@ function App() {
           )}
         </form>
       </div>
+
+      {showTasks && <TasksPanel onClose={() => setShowTasks(false)} />}
     </div>
   )
 }

@@ -46,6 +46,39 @@ export async function deleteConversation(id) {
   if (!resp.ok) throw new Error('No se pudo borrar la conversacion')
 }
 
+// ---------- Tareas / recordatorios (Fase 4) ----------
+
+export async function listTasks() {
+  const resp = await fetch('/api/tasks')
+  if (!resp.ok) throw new Error('No se pudieron cargar las tareas')
+  return resp.json()
+}
+
+export async function createTask(task) {
+  const resp = await fetch('/api/tasks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(task),
+  })
+  if (!resp.ok) throw new Error('No se pudo crear la tarea')
+  return resp.json()
+}
+
+export async function updateTask(id, changes) {
+  const resp = await fetch(`/api/tasks/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(changes),
+  })
+  if (!resp.ok) throw new Error('No se pudo actualizar la tarea')
+  return resp.json()
+}
+
+export async function deleteTask(id) {
+  const resp = await fetch(`/api/tasks/${id}`, { method: 'DELETE' })
+  if (!resp.ok) throw new Error('No se pudo borrar la tarea')
+}
+
 // ---------- Documentos / PDFs (Fase 3) ----------
 
 export async function listDocuments(conversationId) {

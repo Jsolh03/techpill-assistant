@@ -4,8 +4,11 @@
 - /api/conversations/{id}/chat/stream      -> chat dentro de una conversacion (se guarda)
 - /api/chat  y  /api/chat/stream           -> chat sin estado (heredado de la Fase 1)
 """
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import models, ollama_service, schemas
@@ -26,6 +29,39 @@ SYSTEM_PROMPT = schemas.Message(
 # Maximo de caracteres de documentos que metemos en el contexto, para no
 # desbordar la ventana del modelo. (Mejora futura: trocear + busqueda/RAG.)
 MAX_DOC_CHARS = 8000
+
+
+def _build_tasks_context(db: Session) -> schemas.Message:
+    """Crea un mensaje de sistema con la fecha de hoy y las tareas pendientes.
+
+    Asi el asistente puede responder a "que tengo esta semana?", "que es lo mas
+    urgente?", etc., basandose en las tareas reales del usuario.
+    """
+    hoy = date.today()
+    pendientes = list(
+        db.scalars(select(models.Task).where(models.Task.done == False)).all()  # noqa: E712
+    )
+    pendientes.sort(key=lambda t: (t.due_date is None, t.due_date or date.max))
+
+    if pendientes:
+        lineas = []
+        for t in pendientes:
+            fecha = t.due_date.isoformat() if t.due_date else "sin fecha"
+            lineas.append(f"- (#{t.id}) {t.title} | vence: {fecha} | prioridad: {t.priority}")
+        tareas_txt = "\n".join(lineas)
+    else:
+        tareas_txt = "(no hay tareas pendientes)"
+
+    return schemas.Message(
+        role="system",
+        content=(
+            f"Fecha de hoy: {hoy.isoformat()} ({hoy.strftime('%A')}).\n"
+            "Estas son las tareas/recordatorios pendientes del usuario. Usalas para "
+            "responder preguntas sobre su agenda (que tiene esta semana, que es urgente, "
+            "que vence pronto, etc.). No inventes tareas que no esten en la lista.\n\n"
+            f"{tareas_txt}"
+        ),
+    )
 
 
 def _build_documents_context(conv: models.Conversation) -> schemas.Message | None:
@@ -87,7 +123,7 @@ async def conversation_chat_stream(
     # 2) Construimos el historial que enviaremos a Ollama:
     #    system + (contexto de documentos si los hay) + toda la conversacion.
     db.refresh(conv)
-    history = [SYSTEM_PROMPT]
+    history = [SYSTEM_PROMPT, _build_tasks_context(db)]
     docs_context = _build_documents_context(conv)
     if docs_context is not None:
         history.append(docs_context)

@@ -4,9 +4,9 @@ Asistente personal con **IA local** (sin enviar tus datos a internet). Funciona
 sobre [Ollama](https://ollama.com), con un backend en **Python + FastAPI** y un
 frontend en **React (Vite)**.
 
-> Proyecto por fases. **Fase 3 (actual): subir y analizar PDFs.**
+> Proyecto por fases. **Fase 4 (actual): tareas y recordatorios con IA consciente de tu agenda.**
 
-![estado](https://img.shields.io/badge/fase-3%20PDFs-blue) ![python](https://img.shields.io/badge/python-3.12-3776ab) ![react](https://img.shields.io/badge/react-19-61dafb) ![sqlite](https://img.shields.io/badge/sqlite-SQLAlchemy-003b57)
+![estado](https://img.shields.io/badge/fase-4%20tareas-blue) ![python](https://img.shields.io/badge/python-3.12-3776ab) ![react](https://img.shields.io/badge/react-19-61dafb) ![sqlite](https://img.shields.io/badge/sqlite-SQLAlchemy-003b57)
 
 ---
 
@@ -25,15 +25,17 @@ Ollama (:11434)  ──►  modelo local (ej. qwen2.5-coder:7b)
 - **`backend/`** — API FastAPI.
   - `ollama_service.py` — aísla la comunicación con Ollama.
   - `pdf_service.py` — extracción de texto de PDFs (pypdf).
-  - `database.py` / `models.py` — SQLite + SQLAlchemy (conversaciones, mensajes, documentos).
-  - `routers/` — endpoints separados por tema (`chat`, `conversations`, `documents`).
+  - `database.py` / `models.py` — SQLite + SQLAlchemy (conversaciones, mensajes, documentos, tareas).
+  - `routers/` — endpoints separados por tema (`chat`, `conversations`, `documents`, `tasks`).
 - **`frontend/`** — interfaz de chat en React con barra lateral de historial, streaming
   y adjuntado de PDFs.
 
 El backend es el **dueño del historial**: al enviar un mensaje carga toda la
 conversación desde la BD y se la pasa a la IA, así el asistente "recuerda" el contexto.
 Si la conversación tiene **PDFs adjuntos**, su texto se inyecta como contexto para que
-la IA responda basándose en ellos.
+la IA responda basándose en ellos. Además, en cada mensaje se inyectan la **fecha de hoy
+y tus tareas pendientes**, de modo que el asistente puede responder a *"¿qué tengo esta
+semana?"* o *"¿qué es lo más urgente?"* basándose en tu agenda real.
 
 ---
 
@@ -112,6 +114,10 @@ Para usar otro modelo, descárgalo con `ollama pull <modelo>` y cámbialo en `.e
 | `POST`   | `/api/conversations/{id}/documents`           | Sube un PDF o TXT (multipart) y extrae su texto |
 | `GET`    | `/api/conversations/{id}/documents`           | Lista los documentos adjuntos                  |
 | `DELETE` | `/api/documents/{id}`                         | Quita un documento adjunto                     |
+| `GET`    | `/api/tasks`                                  | Lista las tareas (pendientes primero, por fecha/prioridad) |
+| `POST`   | `/api/tasks`                                  | Crea una tarea (título, fecha límite, prioridad) |
+| `PATCH`  | `/api/tasks/{id}`                             | Actualiza una tarea (marcar hecha, cambiar fecha…) |
+| `DELETE` | `/api/tasks/{id}`                             | Borra una tarea                               |
 | `POST`   | `/api/chat` · `/api/chat/stream`              | Chat sin estado (heredado de la Fase 1)       |
 
 Ejemplo: enviar un mensaje a una conversación existente:
@@ -130,8 +136,14 @@ La base de datos se crea sola en `backend/techpill.db` al arrancar.
 - [x] **Fase 1** — Chat con IA local (streaming).
 - [x] **Fase 2** — Guardar conversaciones (SQLite + SQLAlchemy), historial con memoria.
 - [x] **Fase 3** — Subir y analizar documentos PDF y TXT (contexto en el chat + acciones rápidas: resumen, test).
-- [ ] **Fase 4** — Memoria personal, tareas y recordatorios.
+- [x] **Fase 4** — Tareas y recordatorios (panel con prioridades y fechas) + IA consciente de tu agenda.
 - [ ] **Fase 5** — Selector de modelos / modo offline pulido.
+
+> ℹ️ **Sobre la creación de tareas por voz/texto natural:** el modelo local actual
+> (`qwen2.5-coder:7b`) no rellena de forma fiable el campo nativo de *tool calling* de
+> Ollama (devuelve la llamada como texto), así que la creación/edición de tareas se hace
+> desde el panel 📋. La IA **sí** lee tus tareas para responder sobre tu agenda. Activar
+> *function calling* nativo (con un modelo que lo soporte bien) es una mejora futura.
 
 > ℹ️ **Sobre los PDFs:** el texto extraído se inyecta en el contexto (hasta ~8000
 > caracteres). Para documentos muy largos, la mejora futura es trocear + búsqueda

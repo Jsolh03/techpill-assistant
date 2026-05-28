@@ -151,12 +151,36 @@ body {
   margin: 0;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .status {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 13px;
   color: var(--muted);
+}
+
+.tasks-toggle {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid #2f3442;
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tasks-toggle.active,
+.tasks-toggle:hover {
+  background: var(--accent-2);
+  color: white;
+  border-color: var(--accent-2);
 }
 
 .dot {
@@ -291,6 +315,188 @@ body {
 
 .quick-actions button:hover {
   background: var(--panel-2);
+}
+
+/* ---- Panel de tareas (derecha) ---- */
+.tasks-panel {
+  width: 320px;
+  flex-shrink: 0;
+  background: #14161e;
+  border-left: 1px solid #262a36;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  gap: 12px;
+}
+
+.tasks-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tasks-head h2 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.tasks-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.tasks-close:hover {
+  color: var(--text);
+}
+
+.task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-form input[type='text'],
+.task-form input[type='date'],
+.task-form select {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid #2f3442;
+  border-radius: 8px;
+  padding: 9px 10px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.task-form-row {
+  display: flex;
+  gap: 6px;
+}
+
+.task-form-row input[type='date'] {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-form-row button {
+  background: var(--accent-2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 38px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.task-form-row button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.task-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-empty {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 10px;
+  border-left: 3px solid var(--muted);
+}
+
+.task-item.prio-alta {
+  border-left-color: #f87171;
+}
+
+.task-item.prio-media {
+  border-left-color: #fbbf24;
+}
+
+.task-item.prio-baja {
+  border-left-color: #34d399;
+}
+
+.task-item.done .task-title {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.task-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task-title {
+  font-size: 14px;
+  word-break: break-word;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.due.urgent {
+  color: #f87171;
+  font-weight: 600;
+}
+
+.prio-tag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.prio-tag.prio-alta {
+  background: rgba(248, 113, 113, 0.18);
+  color: #f87171;
+}
+
+.prio-tag.prio-media {
+  background: rgba(251, 191, 36, 0.18);
+  color: #fbbf24;
+}
+
+.prio-tag.prio-baja {
+  background: rgba(52, 211, 153, 0.18);
+  color: #34d399;
+}
+
+.task-del {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.task-del:hover {
+  opacity: 1;
 }
 
 /* ---- Caja de escritura ---- */
