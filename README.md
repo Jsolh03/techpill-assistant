@@ -109,9 +109,9 @@ Para usar otro modelo, descárgalo con `ollama pull <modelo>` y cámbialo en `.e
 | `PATCH`  | `/api/conversations/{id}`                     | Renombra una conversación                     |
 | `DELETE` | `/api/conversations/{id}`                     | Borra la conversación (y sus mensajes)        |
 | `POST`   | `/api/conversations/{id}/chat/stream`         | Envía un mensaje; guarda y responde en streaming |
-| `POST`   | `/api/conversations/{id}/documents`           | Sube un PDF (multipart) y extrae su texto     |
-| `GET`    | `/api/conversations/{id}/documents`           | Lista los PDFs adjuntos                        |
-| `DELETE` | `/api/documents/{id}`                         | Quita un PDF adjunto                           |
+| `POST`   | `/api/conversations/{id}/documents`           | Sube un PDF o TXT (multipart) y extrae su texto |
+| `GET`    | `/api/conversations/{id}/documents`           | Lista los documentos adjuntos                  |
+| `DELETE` | `/api/documents/{id}`                         | Quita un documento adjunto                     |
 | `POST`   | `/api/chat` · `/api/chat/stream`              | Chat sin estado (heredado de la Fase 1)       |
 
 Ejemplo: enviar un mensaje a una conversación existente:
@@ -129,7 +129,7 @@ La base de datos se crea sola en `backend/techpill.db` al arrancar.
 
 - [x] **Fase 1** — Chat con IA local (streaming).
 - [x] **Fase 2** — Guardar conversaciones (SQLite + SQLAlchemy), historial con memoria.
-- [x] **Fase 3** — Subir y analizar PDFs (contexto en el chat + acciones rápidas: resumen, test).
+- [x] **Fase 3** — Subir y analizar documentos PDF y TXT (contexto en el chat + acciones rápidas: resumen, test).
 - [ ] **Fase 4** — Memoria personal, tareas y recordatorios.
 - [ ] **Fase 5** — Selector de modelos / modo offline pulido.
 
